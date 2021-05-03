@@ -1,10 +1,19 @@
+
 # Latent Convergent Cross Mapping
 
 Implementation of the Latent CCM paper (https://openreview.net/forum?id=4TSiOTkKe5P)
 
+![latent_CCM_new (1)](https://user-images.githubusercontent.com/22655671/116911247-e1bed400-ac46-11eb-9164-e869f6a11c87.png)
+
 ## Installation
 
 `poetry install`
+
+## Latent CCM in a nutshell
+
+We provide a simple example of using latent CCM for inference of causal link direction in time series in the notebook latentCCM.ipynb.
+
+`/latentccm/latentCCM.ipynb` for the worked out example on Lorenz dynamical systems.
 
 ## Experiments
 
