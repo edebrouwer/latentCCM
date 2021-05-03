@@ -97,6 +97,93 @@ def Lorenz(T, dt, sigma= 10, rho= 28, beta=8/3, noise_level= 0.01, couplings = [
 
     return x_l1, x_l2, x_l3
 
+def Lorenz_sample(T,dt,sigma,rho,beta, noise_level, couplings, sample_rate, multiple_sample_rate, num_series = 1, seed=432):
+    '''
+    Samples from the Lorenz time series
+    The sample rate should be expressed in samples per unit of time. (on average there will be sample_rate*T sample per series)
+    The dual_sample rate gives the proportion of samples wich are jointly sampled (for both dimensions)
+    We generate dummy covariates (all 0)
+    '''
+    np.random.seed(seed)
+        
+    x_l1, x_l2, x_l3 = Lorenz(T, dt=dt, sigma = sigma, rho = rho, beta = beta, noise_level = noise_level, couplings = couplings)
+
+
+    y = np.concatenate([x_l1,x_l2],axis = 1)
+
+    N_t = int(T//dt)
+    
+
+    col= ["ID","Time"] + [f"Value_{i}" for i in range(1,7)] + [f"Mask_{i}" for i in range(1,7)]   
+    
+    #df = pd.DataFrame(columns=col)
+
+    num_samples = int(sample_rate * T)
+
+    sample_times = np.random.choice(N_t,num_samples, replace = False)
+    samples = y[sample_times,:]
+
+    # Now only select some of the samples.
+    mask = np.ones_like(samples)
+    
+    random_mat = np.random.uniform(size = samples.shape)
+
+    mask[random_mat>multiple_sample_rate] = 0
+    samples[random_mat>multiple_sample_rate] = 0
+
+    del random_mat
+
+    samples = samples[mask.sum(axis=1)>0]
+    sample_times = sample_times[mask.sum(axis=1)>0]
+    mask    = mask[mask.sum(axis=1)>0]
+    
+    sample_times = sample_times*dt
+
+    num_samples = samples.shape[0]
+
+    if num_series > 1 :
+        bins = np.linspace(0, T, num_series+1)
+        id_vec = np.expand_dims(np.digitize(sample_times,bins),1)
+        sample_times = sample_times - bins[id_vec-1][:,0]        
+    else:
+        id_vec = np.ones((num_samples,1))
+
+
+    df = pd.DataFrame(np.concatenate((id_vec,np.expand_dims(sample_times,1),samples,mask),1),columns=col)
+     
+    df.reset_index(drop=True,inplace=True)
+    return(df,y)
+
+def generate_Lorenz_data(seed=0):
+    sampling_not_at_random = True
+
+    #Data generation
+    
+    seed = 421 + seed
+
+    T = 10000
+    dt = 0.01
+    sigma = 10
+    rho = 28
+    beta = 8/3
+    noise_level = 0.
+    couplings = [0,3.5]
+    sample_rate = 30
+    multiple_sample_rate = 0.3
+    num_series = 1000
+
+    df,y = Lorenz_sample(T = T, dt = dt, sigma = sigma, rho = rho, beta = beta, noise_level = noise_level, couplings = couplings, sample_rate = sample_rate, multiple_sample_rate = multiple_sample_rate, num_series = num_series)
+    
+    df,y = scaling(df,y)
+
+    #Save metadata dictionary
+    metadata_dict = {"T":T, "delta_t":dt, "rho": rho,
+                    "sigma" : sigma, "beta": beta, "noise_level" : noise_level,
+                    "couplings" : couplings, "num_series" : num_series,
+                    "sample_rate": sample_rate, "multiple_sample_rate": multiple_sample_rate}
+
+    return df,y, metadata_dict
+
 
 def Double_pendulum(T, dt, l1, l2, m1, m2, noise_level):
     N_t = int(T//dt) #number of timepoint
@@ -376,6 +463,8 @@ def scaling(df,y):
         y[:,i] = (y[:,i]-m)/s
     
     return(df,y)
+
+
 
 if __name__=="__main__":
 
