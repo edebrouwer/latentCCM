@@ -6,9 +6,15 @@ Implementation of the Latent CCM paper (https://openreview.net/forum?id=4TSiOTkK
 
 `poetry install`
 
-### Experiments
+## Experiments
 
-## Training the ODE models on the Dependulum (Irregular) data 
+### Data Generation
+
+`cd data/Dpendulum`
+
+`python data_generation_scipt.py`
+
+### Training the ODE models on the Dependulum (Irregular) data 
 
 `cd experiments/Dpendulum`
 
@@ -16,11 +22,11 @@ Implementation of the Latent CCM paper (https://openreview.net/forum?id=4TSiOTkK
 
 The models are then saved in `trained_models` folder.
  
-## Reconstruction of the trajectories
+### Reconstruction of the trajectories
 
 `python get_path.py`
 
-## Causal direction computation (CCM)
+### Causal direction computation (CCM)
 
 `python gruode_scores.py`
 
